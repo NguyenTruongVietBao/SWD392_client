@@ -59,8 +59,12 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "course",
-            element: <ListCampaign />,
+            path: "campaigns",
+            element: (
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <ListCampaign />
+              </ProtectedRoute>
+            ),
           },
         ],
       },

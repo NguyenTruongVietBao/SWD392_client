@@ -9,12 +9,12 @@ const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 axiosInstance.interceptors.request.use(
   (config) => {
     const accessToken = useAuthStore.getState().token;
-    console.log("accessToken", accessToken);
     if (accessToken) {
       config.headers["Authorization"] = `Bearer ${accessToken}`;
     }

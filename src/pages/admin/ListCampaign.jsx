@@ -6,16 +6,12 @@ const ListCampaign = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const BASE_URL = import.meta.env.VITE_BASE_URL;
-
-  console.log("url", `${BASE_URL}/api/advertiser/campaigns`);
-
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const data = await axiosInstance.get(`/api/advertiser/campaigns`);
-        console.log("data", data);
-        setCampaigns(data);
+        const res = await axiosInstance.get(`/api/advertiser/campaigns`);
+        console.log("res", res.data);
+        setCampaigns(res.data);
       } catch (err) {
         setError(err.message);
       } finally {

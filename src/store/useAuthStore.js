@@ -13,7 +13,6 @@ const useAuthStore = create(
         isLoggingIn: false,
         user: null,
         token: null,
-
         login: async (data) => {
           set({ isLoggingIn: true });
           try {
