@@ -15,7 +15,7 @@ import CampaignList from "../pages/publisher/CampaignList";
 import AdvertiserDashboard from "../pages/advertiser/AdvertiserDashboard";
 import CampaignDetail from "../pages/advertiser/CampaignDetail";
 import AdvertiserRegister from "../pages/auth/AdvertiserRegister";
-import ErrorPage from "../pages/Error";
+import ListCampaign from "../pages/admin/ListCampaign";
 
 const router = createBrowserRouter([
   {
@@ -57,6 +57,10 @@ const router = createBrowserRouter([
                 <AdminDashboard />
               </ProtectedRoute>
             ),
+          },
+          {
+            path: "course",
+            element: <ListCampaign />,
           },
         ],
       },
