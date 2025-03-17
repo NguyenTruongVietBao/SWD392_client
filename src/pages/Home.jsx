@@ -2,7 +2,6 @@ import useAuthStore from "../store/useAuthStore";
 
 export default function Home() {
   const { user } = useAuthStore();
-  console.log("user", user);
 
   return (
     <div className="container h-screen mx-auto px-4 pt-20 max-w-5xl">
