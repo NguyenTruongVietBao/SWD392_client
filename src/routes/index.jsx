@@ -48,6 +48,14 @@ const router = createBrowserRouter([
         Component: Profile,
       },
       {
+        path: "campaigns",
+        element: (
+          <ProtectedRoute allowedRoles={["ADMIN", "PUBLISHER"]}>
+            <ListCampaign />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "admin/",
         children: [
           {
@@ -55,14 +63,6 @@ const router = createBrowserRouter([
             element: (
               <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <AdminDashboard />
-              </ProtectedRoute>
-            ),
-          },
-          {
-            path: "campaigns",
-            element: (
-              <ProtectedRoute allowedRoles={["ADMIN"]}>
-                <ListCampaign />
               </ProtectedRoute>
             ),
           },

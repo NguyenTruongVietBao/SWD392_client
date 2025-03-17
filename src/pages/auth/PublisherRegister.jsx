@@ -13,7 +13,6 @@ export default function PublisherRegister() {
     username: "",
     email: "",
     password: "",
-    companyName: "",
     phoneNumber: "",
     referralCode: "",
     paymentInfo: "",

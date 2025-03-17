@@ -23,7 +23,6 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await login(formData);
-      console.log("res in login page", res);
       if (res) {
         toast.success("Login successful");
         if (res.role === "ADVERTISER") {

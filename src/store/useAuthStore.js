@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import axios from "axios";
 import { immer } from "zustand/middleware/immer";
 import { toast } from "react-toastify";
+import axiosInstance from "../lib/axiosInstance";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -16,13 +16,12 @@ const useAuthStore = create(
         login: async (data) => {
           set({ isLoggingIn: true });
           try {
-            console.log("email password useAuthStore", data);
-            const res = await axios.post(`${BASE_URL}/accounts/login`, data);
-            console.log("res.data in useAuthStore", res.data);
+            const res = await axiosInstance.post(`/accounts/login`, data);
             set((state) => {
               state.user = res.data;
               state.token = res.data.token;
             });
+            console.log("res.data in useAuthStore", res.data);
             return res.data;
           } catch (error) {
             toast.error(error.response.data.message);
@@ -39,8 +38,8 @@ const useAuthStore = create(
         registerAdvertiser: async (data) => {
           set({ isLoggingIn: true });
           try {
-            const res = await axios.post(
-              `${BASE_URL}/accounts/register/advertiser`,
+            const res = await axiosInstance.post(
+              `/accounts/register/advertiser`,
               data
             );
             return res.data;
@@ -54,8 +53,8 @@ const useAuthStore = create(
         registerPublisher: async (data) => {
           set({ isLoggingIn: true });
           try {
-            const res = await axios.post(
-              `${BASE_URL}/accounts/register/publisher`,
+            const res = await axiosInstance.post(
+              `/accounts/register/publisher`,
               data
             );
             return res.data;
