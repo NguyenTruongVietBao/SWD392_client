@@ -1,7 +1,8 @@
 import { BookHeadphones, LogIn, LogOut, Settings, User } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import useAuthStore from "../store/useAuthStore";
-
+import { Role } from "../constants/enums";
+const { ADMIN, PUBLISHER, ADVERTISER } = Role;
 export default function Navbar() {
   const { logout, user } = useAuthStore();
   const navigation = useNavigate();
@@ -15,18 +16,19 @@ export default function Navbar() {
     if (!user) return [];
 
     switch (user.role) {
-      case "ADMIN":
+      case ADMIN:
         return [
           { label: "Dashboard", path: "/admin" },
-          { label: "Management", path: "/management" },
+          { label: "Campaigns", path: "/admin/campaigns" },
+          { label: "Users", path: "/admin/users" },
         ];
-      case "PUBLISHER":
+      case PUBLISHER:
         return [
-          { label: "Home", path: "/publisher" },
-          { label: "Campaigns", path: "/campaigns" },
-          { label: "Payment", path: "/payment" },
+          { label: "Home", path: "" },
+          { label: "Campaigns", path: "publisher/campaigns" },
+          { label: "Payment", path: "publisher/payment" },
         ];
-      case "ADVERTISER":
+      case ADVERTISER:
         return [
           { label: "Home", path: "/advertiser" },
           { label: "Campaign", path: `/campaign/${user.id}` },

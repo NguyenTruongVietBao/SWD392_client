@@ -41,7 +41,7 @@ export default function PublisherRegister() {
   };
 
   return (
-    <div className="h-screen grid lg:grid-cols-2">
+    <div className="min-h-screen grid lg:grid-cols-2">
       {/* Left Side - Image/Pattern */}
       <AuthImagePattern
         title={"Publisher Register"}

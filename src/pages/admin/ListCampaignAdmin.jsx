@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../lib/axiosInstance";
+import Loading from "../../components/Loading";
 
-const ListCampaign = () => {
+const ListCampaignAdmin = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,12 +23,14 @@ const ListCampaign = () => {
     fetchCampaigns();
   }, []);
 
-  if (loading)
-    return <p className="text-center text-gray-500">Loading campaigns...</p>;
+  // Loading
+  if (loading) return <Loading />;
+
+  // Error
   if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
   return (
-    <div className="h-screen pt-20 flex flex-col justify-center items-center">
+    <div className="min-h-screen pt-20 flex flex-col justify-center items-center">
       <h1 className="text-2xl font-bold text-center mb-4">Campaign List</h1>
       <div className="overflow-x-auto">
         <table className="table table-zebra w-full">
@@ -88,4 +91,4 @@ const ListCampaign = () => {
   );
 };
 
-export default ListCampaign;
+export default ListCampaignAdmin;

@@ -9,13 +9,13 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="h-screen pt-20 flex flex-col justify-center items-center">
+    <div className="min-h-screen pt-20 flex flex-col justify-center items-center">
       <div>
         <h1 className="text-5xl text-primary font-bold">Dashboard</h1>
       </div>
       <div className="flex items-center gap-2 mt-10">
         Management:
-        <Link to={"/campaigns"} className="btn">
+        <Link to={"campaigns"} className="btn">
           Campaigns
         </Link>
         <Link to={"/categories"} className="btn">

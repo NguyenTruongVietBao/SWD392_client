@@ -1,5 +1,7 @@
 import App from "../App";
 import { createBrowserRouter } from "react-router";
+import { Role } from "../constants/enums";
+
 import Login from "../pages/auth/Login";
 import Home from "../pages/Home";
 import ProtectedRoute from "./ProtectedRoute";
@@ -8,19 +10,21 @@ import Profile from "../pages/Profile";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import PublisherDashboard from "../pages/publisher/PublisherDashboard";
 import PublisherRegister from "../pages/auth/PublisherRegister";
-import CampaignList from "../pages/publisher/CampaignList";
 import AdvertiserDashboard from "../pages/advertiser/AdvertiserDashboard";
 import CampaignDetail from "../pages/advertiser/CampaignDetail";
 import AdvertiserRegister from "../pages/auth/AdvertiserRegister";
-import ListCampaign from "../pages/admin/ListCampaign";
-import { Role } from "../constants/enums";
-
+import ErrorPage from "../pages/Error";
+import ListCampaignAdmin from "../pages/admin/ListCampaignAdmin";
+import ListCampaignPublisher from "../pages/publisher/ListCampaignPublisher";
+import Payment from "../pages/publisher/Payment";
+import CampaignDetailPublisher from "../pages/publisher/CampaignDetailPublisher";
 const { ADMIN, PUBLISHER, ADVERTISER } = Role;
+
 const router = createBrowserRouter([
   {
     path: "/",
     Component: App,
-    // errorElement: <ErrorPage />,
+    errorElement: <ErrorPage />,
     children: [
       {
         path: "",
@@ -46,14 +50,7 @@ const router = createBrowserRouter([
         path: "profile",
         Component: Profile,
       },
-      {
-        path: "campaigns",
-        element: (
-          <ProtectedRoute allowedRoles={[ADMIN, PUBLISHER]}>
-            <ListCampaign />
-          </ProtectedRoute>
-        ),
-      },
+
       {
         path: "admin/",
         children: [
@@ -62,6 +59,14 @@ const router = createBrowserRouter([
             element: (
               <ProtectedRoute allowedRoles={[ADMIN]}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "campaigns",
+            element: (
+              <ProtectedRoute allowedRoles={[ADMIN]}>
+                <ListCampaignAdmin />
               </ProtectedRoute>
             ),
           },
@@ -103,7 +108,23 @@ const router = createBrowserRouter([
             path: "campaigns",
             element: (
               <ProtectedRoute allowedRoles={[PUBLISHER]}>
-                <CampaignList />
+                <ListCampaignPublisher />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "campaigns/:id",
+            element: (
+              <ProtectedRoute allowedRoles={[PUBLISHER]}>
+                <CampaignDetailPublisher />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "payment",
+            element: (
+              <ProtectedRoute allowedRoles={[PUBLISHER]}>
+                <Payment />
               </ProtectedRoute>
             ),
           },
