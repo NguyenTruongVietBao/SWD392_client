@@ -18,6 +18,7 @@ import ListCampaignAdmin from "../pages/admin/ListCampaignAdmin";
 import ListCampaignPublisher from "../pages/publisher/ListCampaignPublisher";
 import Payment from "../pages/publisher/Payment";
 import CampaignDetailPublisher from "../pages/publisher/CampaignDetailPublisher";
+import ListUser from "../pages/admin/ListUser";
 const { ADMIN, PUBLISHER, ADVERTISER } = Role;
 
 const router = createBrowserRouter([
@@ -67,6 +68,14 @@ const router = createBrowserRouter([
             element: (
               <ProtectedRoute allowedRoles={[ADMIN]}>
                 <ListCampaignAdmin />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "users",
+            element: (
+              <ProtectedRoute allowedRoles={[ADMIN]}>
+                <ListUser />
               </ProtectedRoute>
             ),
           },
