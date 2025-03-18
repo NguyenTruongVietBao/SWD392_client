@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router";
 import axiosInstance from "../../lib/axiosInstance";
 import { useQuery } from "@tanstack/react-query";
