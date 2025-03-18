@@ -27,7 +27,7 @@ const ListCampaign = () => {
   if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="h-screen pt-20 flex flex-col justify-center items-center">
       <h1 className="text-2xl font-bold text-center mb-4">Campaign List</h1>
       <div className="overflow-x-auto">
         <table className="table table-zebra w-full">

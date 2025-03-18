@@ -13,6 +13,7 @@ const useAuthStore = create(
         isLoggingIn: false,
         user: null,
         token: null,
+
         login: async (data) => {
           set({ isLoggingIn: true });
           try {
@@ -21,7 +22,6 @@ const useAuthStore = create(
               state.user = res.data;
               state.token = res.data.token;
             });
-            console.log("res.data in useAuthStore", res.data);
             return res.data;
           } catch (error) {
             toast.error(error.response.data.message);
@@ -29,11 +29,13 @@ const useAuthStore = create(
             set({ isLoggingIn: false });
           }
         },
-        logout: () =>
+
+        logout: () => {
           set((state) => {
             state.user = null;
             state.token = null;
-          }),
+          });
+        },
 
         registerAdvertiser: async (data) => {
           set({ isLoggingIn: true });

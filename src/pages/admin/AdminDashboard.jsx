@@ -15,7 +15,7 @@ export default function AdminDashboard() {
       </div>
       <div className="flex items-center gap-2 mt-10">
         Management:
-        <Link to={"campaigns"} className="btn">
+        <Link to={"/campaigns"} className="btn">
           Campaigns
         </Link>
         <Link to={"/categories"} className="btn">

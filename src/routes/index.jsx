@@ -5,18 +5,17 @@ import Home from "../pages/Home";
 import ProtectedRoute from "./ProtectedRoute";
 import SettingPage from "../pages/Setting";
 import Profile from "../pages/Profile";
-
 import AdminDashboard from "../pages/admin/AdminDashboard";
-
 import PublisherDashboard from "../pages/publisher/PublisherDashboard";
 import PublisherRegister from "../pages/auth/PublisherRegister";
 import CampaignList from "../pages/publisher/CampaignList";
-
 import AdvertiserDashboard from "../pages/advertiser/AdvertiserDashboard";
 import CampaignDetail from "../pages/advertiser/CampaignDetail";
 import AdvertiserRegister from "../pages/auth/AdvertiserRegister";
 import ListCampaign from "../pages/admin/ListCampaign";
+import { Role } from "../constants/enums";
 
+const { ADMIN, PUBLISHER, ADVERTISER } = Role;
 const router = createBrowserRouter([
   {
     path: "/",
@@ -50,7 +49,7 @@ const router = createBrowserRouter([
       {
         path: "campaigns",
         element: (
-          <ProtectedRoute allowedRoles={["ADMIN", "PUBLISHER"]}>
+          <ProtectedRoute allowedRoles={[ADMIN, PUBLISHER]}>
             <ListCampaign />
           </ProtectedRoute>
         ),
@@ -61,7 +60,7 @@ const router = createBrowserRouter([
           {
             path: "",
             element: (
-              <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <ProtectedRoute allowedRoles={[ADMIN]}>
                 <AdminDashboard />
               </ProtectedRoute>
             ),
@@ -74,7 +73,7 @@ const router = createBrowserRouter([
           {
             path: "",
             element: (
-              <ProtectedRoute allowedRoles={["ADVERTISER"]}>
+              <ProtectedRoute allowedRoles={[ADVERTISER]}>
                 <AdvertiserDashboard />
               </ProtectedRoute>
             ),
@@ -82,9 +81,7 @@ const router = createBrowserRouter([
           {
             path: "campaign/:id",
             element: (
-              <ProtectedRoute
-                allowedRoles={["ADVERTISER", "ADMIN", "PUBLISHER"]}
-              >
+              <ProtectedRoute allowedRoles={[ADVERTISER, ADMIN, PUBLISHER]}>
                 <CampaignDetail />
               </ProtectedRoute>
             ),
@@ -97,7 +94,7 @@ const router = createBrowserRouter([
           {
             path: "",
             element: (
-              <ProtectedRoute allowedRoles={["PUBLISHER"]}>
+              <ProtectedRoute allowedRoles={[PUBLISHER]}>
                 <PublisherDashboard />
               </ProtectedRoute>
             ),
@@ -105,7 +102,7 @@ const router = createBrowserRouter([
           {
             path: "campaigns",
             element: (
-              <ProtectedRoute allowedRoles={["PUBLISHER"]}>
+              <ProtectedRoute allowedRoles={[PUBLISHER]}>
                 <CampaignList />
               </ProtectedRoute>
             ),
