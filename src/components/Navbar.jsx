@@ -30,8 +30,9 @@ export default function Navbar() {
         ];
       case ADVERTISER:
         return [
-          { label: "Home", path: "/advertiser" },
-          { label: "Campaign", path: `/campaign/${user.id}` },
+          { label: "Campaign", path: `/advertiser/campaigns/${user.id}` },
+          { label: "Payment", path: `/advertiser/payment` },
+          { label: "Tracking", path: `/advertiser/payment` },
         ];
       default:
         return [];

@@ -13,7 +13,6 @@ export default function Login() {
     username: "",
     password: "",
   });
-  console.log("isLoggingIn", isLoggingIn);
 
   if (user) {
     return <Navigate to="/" />;
@@ -33,8 +32,7 @@ export default function Login() {
           navigate("/admin");
         }
       } else {
-        console.error("Login failed:", res.message || "Unknown error");
-        toast.error(res.message || "Unknown error");
+        toast.error("Invalid username or password");
       }
     } catch (error) {
       console.error("Error:", error);
