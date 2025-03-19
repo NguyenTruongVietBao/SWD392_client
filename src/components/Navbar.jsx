@@ -24,7 +24,7 @@ export default function Navbar() {
         ];
       case PUBLISHER:
         return [
-          { label: "Home", path: "" },
+          { label: "Dashboard", path: "" },
           { label: "Campaigns", path: "publisher/campaigns" },
           { label: "Payment", path: "publisher/payment" },
         ];

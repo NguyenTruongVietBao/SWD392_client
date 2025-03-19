@@ -98,6 +98,7 @@ export default function PublisherDashboard() {
 
         {/* Thẻ thống kê */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Tổng thu nhập */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -120,7 +121,7 @@ export default function PublisherDashboard() {
               </div>
             </div>
           </div>
-
+          {/* Lượt click */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -143,7 +144,7 @@ export default function PublisherDashboard() {
               </div>
             </div>
           </div>
-
+          {/* Chuyển đổi */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -166,7 +167,7 @@ export default function PublisherDashboard() {
               </div>
             </div>
           </div>
-
+          {/* Tỷ lệ chuyển đổi */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -239,9 +240,6 @@ export default function PublisherDashboard() {
               <h3 className="text-lg font-semibold text-gray-800">
                 Chiến Dịch Hàng Đầu
               </h3>
-              <button className="text-xs text-orange-500 font-medium hover:underline">
-                Xem tất cả
-              </button>
             </div>
 
             <div className="space-y-4">

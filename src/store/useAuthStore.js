@@ -4,8 +4,6 @@ import { immer } from "zustand/middleware/immer";
 import { toast } from "react-toastify";
 import axiosInstance from "../lib/axiosInstance";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-
 const useAuthStore = create(
   persist(
     immer(
