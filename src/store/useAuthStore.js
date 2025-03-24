@@ -23,7 +23,6 @@ const useAuthStore = create(
             return res.data;
           } catch (error) {
             console.log("error in login", error.message);
-            toast.error(error.message);
           } finally {
             set({ isLoggingIn: false });
           }

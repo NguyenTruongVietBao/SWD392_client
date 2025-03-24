@@ -10,7 +10,7 @@ import {
   ArrowDownUp,
 } from "lucide-react";
 
-export default function Payment() {
+export default function PublisherPayment() {
   const [activeTab, setActiveTab] = useState("history");
   const [paymentMethod, setPaymentMethod] = useState("bank");
   const [showAddPayment, setShowAddPayment] = useState(false);

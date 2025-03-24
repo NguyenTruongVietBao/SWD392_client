@@ -23,7 +23,6 @@ export default function Login() {
     try {
       const res = await login(formData);
       if (res) {
-        toast.success("Login successful");
         if (res.role === "ADVERTISER") {
           navigate("/advertiser");
         } else if (res.role === "PUBLISHER") {
@@ -32,7 +31,7 @@ export default function Login() {
           navigate("/admin");
         }
       } else {
-        toast.error("Invalid username or password");
+        toast.error("Invalid credentials");
       }
     } catch (error) {
       console.error("Error:", error);

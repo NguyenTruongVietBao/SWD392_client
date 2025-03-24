@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BarChart3,
   TrendingUp,
@@ -9,63 +9,38 @@ import {
   Filter,
   Tag,
   ExternalLink,
-  Link as LinkIcon,
   MoreHorizontal,
   Calendar,
 } from "lucide-react";
+import axiosInstance from "../../lib/axiosInstance";
+import useAuthStore from "../../store/useAuthStore";
+import { Link } from "react-router";
 
 export default function PublisherDashboard() {
+  const { user } = useAuthStore();
+
   const [timeRange] = useState("Tháng này");
+  const [myCampaigns, setMyCampaigns] = useState([]);
+
+  useEffect(() => {
+    const fetchMyCampaigns = async () => {
+      try {
+        const response = await axiosInstance.get(
+          `/api/publisher/listCampaign/{id}?id=${user.id}`
+        );
+        setMyCampaigns(response.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+    fetchMyCampaigns();
+  }, [user.id]);
 
   // Dữ liệu mẫu cho biểu đồ
   const earningsData = [
     3800, 4200, 3500, 5200, 4900, 6100, 5800, 6200, 5500, 7200, 6500, 7800,
   ];
   const maxEarnings = Math.max(...earningsData);
-
-  // Dữ liệu mẫu cho chiến dịch
-  const campaigns = [
-    {
-      id: 1,
-      name: "Thời trang nam Thu Đông 2025",
-      advertiser: "FashionVN Store",
-      commission: "15% / đơn hàng",
-      earnings: 1250.8,
-      clicks: 432,
-      conversions: 28,
-      status: "active",
-    },
-    {
-      id: 2,
-      name: "Khóa học Digital Marketing Pro",
-      advertiser: "EduTech Vietnam",
-      commission: "25% / đăng ký",
-      earnings: 978.5,
-      clicks: 385,
-      conversions: 15,
-      status: "active",
-    },
-    {
-      id: 3,
-      name: "Ưu đãi Điện thoại Galaxy S28",
-      advertiser: "TechZone",
-      commission: "8% / sản phẩm",
-      earnings: 1564.2,
-      clicks: 625,
-      conversions: 23,
-      status: "active",
-    },
-    {
-      id: 4,
-      name: "Du lịch hè Phú Quốc",
-      advertiser: "VnTravel",
-      commission: "12% / booking",
-      earnings: 860.75,
-      clicks: 298,
-      conversions: 12,
-      status: "active",
-    },
-  ];
 
   return (
     <div className="min-h-screen pt-20 pb-16 bg-gray-50">
@@ -242,8 +217,8 @@ export default function PublisherDashboard() {
               </h3>
             </div>
 
-            <div className="space-y-4">
-              {campaigns.slice(0, 3).map((campaign) => (
+            {/* <div className="space-y-4">
+              {myCampaigns.slice(0, 3).map((campaign) => (
                 <div
                   key={campaign.id}
                   className="flex items-start py-3 border-b border-gray-100 last:border-0"
@@ -262,7 +237,7 @@ export default function PublisherDashboard() {
                       <div className="flex items-center gap-1 text-xs">
                         <DollarSign className="h-3 w-3 text-green-500" />
                         <span className="font-medium">
-                          ${campaign.earnings.toFixed(2)}
+                          ${campaign.earnings}
                         </span>
                       </div>
                       <div className="flex items-center gap-1 text-xs">
@@ -277,7 +252,7 @@ export default function PublisherDashboard() {
                   </div>
                 </div>
               ))}
-            </div>
+            </div> */}
 
             <button className="w-full mt-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg py-2 text-sm font-medium transition-all">
               Thêm Chiến Dịch Mới
@@ -289,10 +264,11 @@ export default function PublisherDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              {/* Title */}
               <h3 className="text-lg font-semibold text-gray-800">
-                Chiến Dịch Đang Hoạt Động
+                Chiến Dịch Của Bạn
               </h3>
-
+              {/* Search */}
               <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                 <div className="relative flex-1 sm:max-w-[240px]">
                   <input
@@ -311,6 +287,7 @@ export default function PublisherDashboard() {
             </div>
           </div>
 
+          {/* Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -339,13 +316,15 @@ export default function PublisherDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {campaigns.map((campaign) => (
+                {myCampaigns.map((campaign) => (
                   <tr key={campaign.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-start">
                         <div className="ml-0">
                           <div className="text-sm font-medium text-gray-900">
-                            {campaign.name}
+                            <Link to={`campaigns/${campaign.id}`}>
+                              {campaign.title}
+                            </Link>
                           </div>
                           <div className="text-xs text-gray-500">
                             {campaign.advertiser}
@@ -355,12 +334,12 @@ export default function PublisherDashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-700">
-                        {campaign.commission}
+                        {campaign.commissionRate}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="text-sm font-medium text-gray-900">
-                        ${campaign.earnings.toFixed(2)}
+                        ${campaign.commissionValue.toFixed(2)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -398,13 +377,10 @@ export default function PublisherDashboard() {
             </table>
           </div>
 
+          {/* Pagination */}
           <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200">
             <div className="flex items-center">
-              <p className="text-sm text-gray-700">
-                Hiển thị <span className="font-medium">1</span> đến{" "}
-                <span className="font-medium">4</span> của{" "}
-                <span className="font-medium">4</span> kết quả
-              </p>
+              <p className="text-sm text-gray-700"></p>
             </div>
             <div className="flex gap-2">
               <button
@@ -412,6 +388,12 @@ export default function PublisherDashboard() {
                 disabled
               >
                 Trước
+              </button>
+              <button
+                className="border border-gray-300 rounded-md px-3 py-1 text-sm bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                disabled
+              >
+                1
               </button>
               <button
                 className="border border-gray-300 rounded-md px-3 py-1 text-sm bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50"

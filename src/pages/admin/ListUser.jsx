@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Clock,
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 const ListUser = () => {
   const [users, setUsers] = useState([]);
@@ -140,6 +141,45 @@ const ListUser = () => {
   // Đóng modal
   const closeModal = () => {
     setSelectedUser(null);
+  };
+
+  // Xử lý thay đổi trạng thái người dùng
+  const handleChangeStatus = async (userId, newStatus) => {
+    try {
+      await axiosInstance.put(
+        `/accounts/changeStatus/${userId}/{status}?status=${newStatus}`
+      );
+
+      // Cập nhật trạng thái trong danh sách người dùng
+      setUsers(
+        users.map((user) =>
+          user.id === userId ? { ...user, status: newStatus } : user
+        )
+      );
+
+      // Cập nhật trạng thái trong danh sách đã lọc
+      setFilteredUsers(
+        filteredUsers.map((user) =>
+          user.id === userId ? { ...user, status: newStatus } : user
+        )
+      );
+
+      // Cập nhật trạng thái trong modal chi tiết nếu đang mở
+      if (selectedUser?.id === userId) {
+        setSelectedUser({ ...selectedUser, status: newStatus });
+      }
+
+      toast.success(
+        `Đã ${
+          newStatus === "ACTIVE" ? "mở khóa" : "khóa"
+        } tài khoản thành công!`
+      );
+    } catch (error) {
+      console.error("Lỗi khi thay đổi trạng thái:", error);
+      toast.error(
+        error.response?.data?.message || "Đã xảy ra lỗi khi thay đổi trạng thái"
+      );
+    }
   };
 
   if (loading) return <Loading />;
@@ -314,7 +354,7 @@ const ListUser = () => {
                             ? "bg-green-100 text-green-800"
                             : user.status === "PENDING"
                             ? "bg-yellow-100 text-yellow-800"
-                            : user.status === "BLOCKED"
+                            : user.status === "LOCKED"
                             ? "bg-red-100 text-red-800"
                             : "bg-gray-100 text-gray-800"
                         }`}
@@ -323,7 +363,7 @@ const ListUser = () => {
                           ? "Hoạt động"
                           : user.status === "PENDING"
                           ? "Chờ duyệt"
-                          : user.status === "BLOCKED"
+                          : user.status === "LOCKED"
                           ? "Đã khóa"
                           : user.status}
                       </span>
@@ -609,23 +649,43 @@ const ListUser = () => {
 
                 {selectedUser.status === "PENDING" && (
                   <>
-                    <button className="px-4 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50">
+                    <button
+                      onClick={() =>
+                        handleChangeStatus(selectedUser.id, "LOCKED")
+                      }
+                      className="px-4 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
+                    >
                       Từ chối
                     </button>
-                    <button className="px-4 py-2 bg-green-500 rounded-lg text-sm font-medium text-white hover:bg-green-600">
+                    <button
+                      onClick={() =>
+                        handleChangeStatus(selectedUser.id, "ACTIVE")
+                      }
+                      className="px-4 py-2 bg-green-500 rounded-lg text-sm font-medium text-white hover:bg-green-600"
+                    >
                       Phê duyệt
                     </button>
                   </>
                 )}
 
                 {selectedUser.status === "ACTIVE" && (
-                  <button className="px-4 py-2 bg-red-500 rounded-lg text-sm font-medium text-white hover:bg-red-600">
+                  <button
+                    onClick={() =>
+                      handleChangeStatus(selectedUser.id, "LOCKED")
+                    }
+                    className="px-4 py-2 bg-red-500 rounded-lg text-sm font-medium text-white hover:bg-red-600"
+                  >
                     Khóa tài khoản
                   </button>
                 )}
 
-                {selectedUser.status === "BLOCKED" && (
-                  <button className="px-4 py-2 bg-green-500 rounded-lg text-sm font-medium text-white hover:bg-green-600">
+                {selectedUser.status === "LOCKED" && (
+                  <button
+                    onClick={() =>
+                      handleChangeStatus(selectedUser.id, "ACTIVE")
+                    }
+                    className="px-4 py-2 bg-green-500 rounded-lg text-sm font-medium text-white hover:bg-green-600"
+                  >
                     Mở khóa tài khoản
                   </button>
                 )}

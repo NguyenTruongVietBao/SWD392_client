@@ -24,15 +24,15 @@ export default function Navbar() {
         ];
       case PUBLISHER:
         return [
-          { label: "Dashboard", path: "" },
-          { label: "Campaigns", path: "publisher/campaigns" },
-          { label: "Payment", path: "publisher/payment" },
+          { label: "Dashboard", path: "/publisher" },
+          { label: "Campaigns", path: "/publisher/campaigns" },
+          { label: "Payment", path: "/publisher/payment" },
         ];
       case ADVERTISER:
         return [
-          { label: "Campaign", path: `/advertiser/campaigns/${user.id}` },
-          { label: "Payment", path: `/advertiser/payment` },
-          { label: "Tracking", path: `/advertiser/payment` },
+          { label: "Dashboard", path: "/advertiser" },
+          { label: "Campaigns", path: "/advertiser/campaigns" },
+          { label: "Payment", path: "/advertiser/payment" },
         ];
       default:
         return [];

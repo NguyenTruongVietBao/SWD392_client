@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import {
   BarChart3,
@@ -20,10 +20,42 @@ import {
   PlayCircle,
   Share2,
 } from "lucide-react";
+import useAuthStore from "../../store/useAuthStore";
+import axiosInstance from "../../lib/axiosInstance";
 
 export default function AdvertiserDashboard() {
+  const { user } = useAuthStore();
   const [timeRange] = useState("Tháng này");
   const [viewMode, setViewMode] = useState("all");
+  const [myCampaigns, setMyCampaigns] = useState([]);
+  const [displayCampaigns, setDisplayCampaigns] = useState([]);
+
+  useEffect(() => {
+    const fetchMyCampaigns = async () => {
+      try {
+        const response = await axiosInstance.get(
+          `/api/advertisers/listCampaign/{id}?id=${user.id}`
+        );
+        setMyCampaigns(response.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+    fetchMyCampaigns();
+  }, [user.id]);
+
+  // Cập nhật danh sách chiến dịch lọc theo viewMode
+  useEffect(() => {
+    if (viewMode === "all") {
+      setDisplayCampaigns(myCampaigns);
+    } else {
+      setDisplayCampaigns(
+        myCampaigns.filter(
+          (campaign) => campaign.status === viewMode.toUpperCase()
+        )
+      );
+    }
+  }, [myCampaigns, viewMode]);
 
   // Dữ liệu mẫu cho biểu đồ
   const spendData = [
@@ -31,81 +63,24 @@ export default function AdvertiserDashboard() {
   ];
   const maxSpend = Math.max(...spendData);
 
-  // Dữ liệu mẫu cho chiến dịch
-  const campaigns = [
-    {
-      id: 1,
-      name: "Thời trang nam Thu Đông 2025",
-      category: "Thời trang",
-      budget: 5000,
-      spent: 3250.8,
-      clicks: 12532,
-      conversions: 352,
-      ctr: 4.2,
-      cpc: 0.26,
-      status: "active",
-    },
-    {
-      id: 2,
-      name: "Khóa học Digital Marketing Pro",
-      category: "Giáo dục",
-      budget: 3000,
-      spent: 2175.5,
-      clicks: 8264,
-      conversions: 178,
-      ctr: 5.1,
-      cpc: 0.31,
-      status: "active",
-    },
-    {
-      id: 3,
-      name: "Ưu đãi Điện thoại Galaxy S28",
-      category: "Công nghệ",
-      budget: 8000,
-      spent: 5640.2,
-      clicks: 21530,
-      conversions: 463,
-      ctr: 3.8,
-      cpc: 0.28,
-      status: "paused",
-    },
-    {
-      id: 4,
-      name: "Du lịch hè Phú Quốc",
-      category: "Du lịch",
-      budget: 4000,
-      spent: 2120.75,
-      clicks: 9672,
-      conversions: 215,
-      ctr: 4.8,
-      cpc: 0.24,
-      status: "active",
-    },
-  ];
-
-  // Lọc chiến dịch theo trạng thái
-  const filteredCampaigns =
-    viewMode === "all"
-      ? campaigns
-      : campaigns.filter((campaign) => campaign.status === viewMode);
-
   // Thống kê tổng quát
-  const totalSpent = campaigns.reduce(
-    (sum, campaign) => sum + campaign.spent,
+  const totalBudget = myCampaigns.reduce(
+    (sum, campaign) => sum + (campaign.budget || 0),
     0
   );
-  const totalClicks = campaigns.reduce(
-    (sum, campaign) => sum + campaign.clicks,
+  const totalCommission = myCampaigns.reduce(
+    (sum, campaign) => sum + (campaign.commissionValue || 0),
     0
   );
-  const totalConversions = campaigns.reduce(
-    (sum, campaign) => sum + campaign.conversions,
-    0
-  );
-  const averageCTR = (
-    campaigns.reduce((sum, campaign) => sum + campaign.ctr, 0) /
-    campaigns.length
-  ).toFixed(2);
+  const totalPending = myCampaigns.filter(
+    (campaign) => campaign.status === "PENDING"
+  ).length;
+  const totalApproved = myCampaigns.filter(
+    (campaign) => campaign.status === "APPROVED"
+  ).length;
+
+  console.log("user", user);
+  console.log("myCampaigns", myCampaigns);
 
   return (
     <div className="min-h-screen pt-20 pb-16 bg-gray-50">
@@ -131,7 +106,7 @@ export default function AdvertiserDashboard() {
             </div>
 
             <Link
-              to="/advertiser/create-campaign"
+              to="/advertiser/campaign/create"
               className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all flex items-center"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -141,32 +116,7 @@ export default function AdvertiserDashboard() {
         </div>
 
         {/* Thẻ thống kê */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">
-                  Tổng Chi Tiêu
-                </p>
-                <h3 className="text-2xl font-bold text-gray-800">
-                  ${totalSpent.toFixed(2)}
-                </h3>
-                <div className="flex items-center gap-1 mt-2">
-                  <div className="text-xs font-medium text-green-600 flex items-center">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    18.2%
-                  </div>
-                  <span className="text-xs text-gray-500">
-                    so với tháng trước
-                  </span>
-                </div>
-              </div>
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-orange-500" />
-              </div>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -174,7 +124,7 @@ export default function AdvertiserDashboard() {
                   Lượt Click
                 </p>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {totalClicks.toLocaleString()}
+                  {totalApproved + totalPending}
                 </h3>
                 <div className="flex items-center gap-1 mt-2">
                   <div className="text-xs font-medium text-green-600 flex items-center">
@@ -199,7 +149,7 @@ export default function AdvertiserDashboard() {
                   Chuyển Đổi
                 </p>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {totalConversions.toLocaleString()}
+                  {totalApproved}
                 </h3>
                 <div className="flex items-center gap-1 mt-2">
                   <div className="text-xs font-medium text-green-600 flex items-center">
@@ -224,7 +174,11 @@ export default function AdvertiserDashboard() {
                   Tỷ Lệ Click (CTR)
                 </p>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {averageCTR}%
+                  {(
+                    (totalApproved / (totalApproved + totalPending)) *
+                    100
+                  ).toFixed(2)}
+                  %
                 </h3>
                 <div className="flex items-center gap-1 mt-2">
                   <div className="text-xs font-medium text-green-600 flex items-center">
@@ -238,6 +192,56 @@ export default function AdvertiserDashboard() {
               </div>
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                 <BarChart3 className="h-5 w-5 text-purple-500" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">
+                  Tổng Hoa Hồng
+                </p>
+                <h3 className="text-2xl font-bold text-gray-800">
+                  ${totalCommission.toFixed(2)}
+                </h3>
+                <div className="flex items-center gap-1 mt-2">
+                  <div className="text-xs font-medium text-green-600 flex items-center">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    18.2%
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    so với tháng trước
+                  </span>
+                </div>
+              </div>
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-orange-500" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">
+                  Tổng Ngân Sách
+                </p>
+                <h3 className="text-2xl font-bold text-gray-800">
+                  ${totalBudget.toFixed(2)}
+                </h3>
+                <div className="flex items-center gap-1 mt-2">
+                  <div className="text-xs font-medium text-green-600 flex items-center">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    18.2%
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    so với tháng trước
+                  </span>
+                </div>
+              </div>
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-orange-500" />
               </div>
             </div>
           </div>
@@ -299,7 +303,7 @@ export default function AdvertiserDashboard() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
                     <span className="text-2xl font-bold text-gray-800">
-                      ${totalSpent.toFixed(0)}
+                      ${totalBudget.toFixed(0)}
                     </span>
                     <p className="text-xs text-gray-500">Tổng chi tiêu</p>
                   </div>
@@ -311,37 +315,37 @@ export default function AdvertiserDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-                  <span className="text-sm text-gray-700">Thời trang</span>
+                  <span className="text-sm text-gray-700">Đã duyệt</span>
                 </div>
                 <span className="text-sm font-medium">
-                  ${campaigns[0].spent.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                  <span className="text-sm text-gray-700">Giáo dục</span>
-                </div>
-                <span className="text-sm font-medium">
-                  ${campaigns[1].spent.toFixed(2)}
+                  ${totalBudget.toFixed(2)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                  <span className="text-sm text-gray-700">Công nghệ</span>
+                  <span className="text-sm text-gray-700">Đang chạy</span>
                 </div>
                 <span className="text-sm font-medium">
-                  ${campaigns[2].spent.toFixed(2)}
+                  ${totalBudget.toFixed(2)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-                  <span className="text-sm text-gray-700">Du lịch</span>
+                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                  <span className="text-sm text-gray-700">Tạm dừng</span>
                 </div>
                 <span className="text-sm font-medium">
-                  ${campaigns[3].spent.toFixed(2)}
+                  ${totalBudget.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                  <span className="text-sm text-gray-700">Chờ duyệt</span>
+                </div>
+                <span className="text-sm font-medium">
+                  ${totalBudget.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -377,6 +381,16 @@ export default function AdvertiserDashboard() {
                     onClick={() => setViewMode("active")}
                   >
                     Đang chạy
+                  </button>
+                  <button
+                    className={`px-3 py-1 text-sm rounded-md ${
+                      viewMode === "pending"
+                        ? "bg-white shadow-sm text-gray-800"
+                        : "text-gray-600"
+                    }`}
+                    onClick={() => setViewMode("pending")}
+                  >
+                    Đợi duyệt
                   </button>
                   <button
                     className={`px-3 py-1 text-sm rounded-md ${
@@ -420,16 +434,13 @@ export default function AdvertiserDashboard() {
                     Ngân sách
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Chi tiêu
+                    Hoa hồng
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Lượt click
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ngày bắt đầu
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    CTR
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    CPC
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ngày kết thúc
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
@@ -440,83 +451,117 @@ export default function AdvertiserDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCampaigns.map((campaign) => (
-                  <tr key={campaign.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-start">
-                        <div className="ml-0">
-                          <div className="text-sm font-medium text-gray-900">
-                            {campaign.name}
+                {displayCampaigns.length > 0 ? (
+                  displayCampaigns.map((campaign) => (
+                    <tr key={campaign.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Link to={`campaign/${campaign.id}`}>
+                          <div className="flex items-start">
+                            <div className="ml-0">
+                              <div className="text-sm font-medium text-gray-900">
+                                {campaign.title}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {campaign.targetAudience || "Chưa xác định"}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {campaign.category}
-                          </div>
+                        </Link>
+                      </td>
+
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="text-sm font-medium text-gray-900">
+                          ${campaign.budget?.toLocaleString() || 0}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-sm font-medium text-gray-900">
-                        ${campaign.budget.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-sm font-medium text-gray-900">
-                        ${campaign.spent.toFixed(2)}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {((campaign.spent / campaign.budget) * 100).toFixed(1)}%
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-sm text-gray-700">
-                        {campaign.clicks.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-sm text-gray-700">
-                        {campaign.ctr.toFixed(1)}%
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-sm text-gray-700">
-                        ${campaign.cpc.toFixed(2)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          campaign.status === "active"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {campaign.status === "active"
-                          ? "Đang chạy"
-                          : "Tạm dừng"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex justify-center space-x-2">
-                        <button className="p-1 rounded-full hover:bg-gray-100">
-                          <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                        </button>
-                        <button className="p-1 rounded-full hover:bg-gray-100">
-                          {campaign.status === "active" ? (
-                            <PauseCircle className="h-4 w-4 text-gray-400 hover:text-yellow-600" />
-                          ) : (
-                            <PlayCircle className="h-4 w-4 text-gray-400 hover:text-green-600" />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="text-sm font-medium text-gray-900">
+                          ${campaign.commissionValue?.toLocaleString() || 0}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {campaign.commissionRate || 0}%
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="text-sm text-gray-700">
+                          {campaign.startDate || "Chưa xác định"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="text-sm text-gray-700">
+                          {campaign.endDate || "Chưa xác định"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                          ${
+                            campaign.status === "APPROVED"
+                              ? "bg-green-100 text-green-800"
+                              : campaign.status === "PENDING"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : campaign.status === "REJECTED"
+                              ? "bg-red-100 text-red-800"
+                              : campaign.status === "ACTIVE"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {campaign.status === "APPROVED"
+                            ? "Đã duyệt"
+                            : campaign.status === "PENDING"
+                            ? "Chờ duyệt"
+                            : campaign.status === "REJECTED"
+                            ? "Đã từ chối"
+                            : campaign.status === "ACTIVE"
+                            ? "Đang hoạt động"
+                            : campaign.status === "ENDED"
+                            ? "Đã kết thúc"
+                            : campaign.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex justify-center space-x-2">
+                          <button className="p-1 rounded-full hover:bg-gray-100">
+                            <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                          </button>
+                          {campaign.status === "APPROVED" && (
+                            <button className="p-1 rounded-full hover:bg-gray-100">
+                              {campaign.status === "ACTIVE" ? (
+                                <PauseCircle className="h-4 w-4 text-gray-400 hover:text-yellow-600" />
+                              ) : (
+                                <PlayCircle className="h-4 w-4 text-gray-400 hover:text-green-600" />
+                              )}
+                            </button>
                           )}
-                        </button>
-                        <button className="p-1 rounded-full hover:bg-gray-100">
-                          <Edit className="h-4 w-4 text-gray-400 hover:text-blue-600" />
-                        </button>
-                        <button className="p-1 rounded-full hover:bg-gray-100">
-                          <MoreHorizontal className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                        </button>
+                          <button className="p-1 rounded-full hover:bg-gray-100">
+                            <Edit className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                          </button>
+                          <button className="p-1 rounded-full hover:bg-gray-100">
+                            <MoreHorizontal className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-10 text-center">
+                      <div className="flex flex-col items-center">
+                        <p className="text-gray-500 mb-4">
+                          Bạn chưa có chiến dịch nào
+                        </p>
+                        <Link
+                          to="/advertiser/campaign/create"
+                          className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all flex items-center"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Tạo Chiến Dịch Mới
+                        </Link>
                       </div>
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -525,9 +570,8 @@ export default function AdvertiserDashboard() {
             <div className="flex items-center">
               <p className="text-sm text-gray-700">
                 Hiển thị <span className="font-medium">1</span> đến{" "}
-                <span className="font-medium">{filteredCampaigns.length}</span>{" "}
-                của{" "}
-                <span className="font-medium">{filteredCampaigns.length}</span>{" "}
+                <span className="font-medium">{displayCampaigns.length}</span>{" "}
+                của <span className="font-medium">{myCampaigns.length}</span>{" "}
                 kết quả
               </p>
             </div>

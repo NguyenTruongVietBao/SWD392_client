@@ -7,25 +7,24 @@ import {
   Eye,
   HandCoins,
   Star,
-  User,
-  Search,
-  Filter,
-  ArrowUpDown,
-  Clock,
-  ChevronDown,
   Tag,
-  TrendingUp,
+  Clock,
   DollarSign,
+  Search,
+  ArrowUpDown,
+  ChevronDown,
+  TrendingUp,
 } from "lucide-react";
+import useAuthStore from "../../store/useAuthStore";
 
-export default function ListCampaignPublisher() {
+export default function PublisherListCampaign() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const { user } = useAuthStore();
+  const publisherId = user.id;
 
-  // Các danh mục chiến dịch
   const categories = [
     { id: "all", name: "Tất cả" },
     { id: "fashion", name: "Thời trang" },
@@ -44,37 +43,25 @@ export default function ListCampaignPublisher() {
     { id: "rating", name: "Đánh giá cao nhất" },
   ];
 
-  const { data, isLoading, error } = useQuery({
+  // Query để lấy danh sách chiến dịch từ API
+  const { data: campaigns, isLoading: campaignsLoading } = useQuery({
     queryKey: ["campaigns"],
     queryFn: async () => {
-      const res = await axiosInstance.get(`/api/advertiser/campaigns`);
+      const res = await axiosInstance.get(
+        `/api/advertiser/campaigns/unregistered/${publisherId}`
+      );
       if (!res.data) {
-        throw new Error("No data found");
+        console.error("Không tìm thấy dữ liệu");
       }
       return res.data;
     },
     staleTime: Infinity,
   });
 
-  if (isLoading) return <Loading />;
-  if (error)
-    return (
-      <div className="min-h-screen pt-20 flex justify-center items-center">
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-700">Đã xảy ra lỗi</h3>
-          <p className="text-gray-500 mt-1">{error.message}</p>
-          <button
-            className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-lg"
-            onClick={() => window.location.reload()}
-          >
-            Thử lại
-          </button>
-        </div>
-      </div>
-    );
+  if (campaignsLoading) return <Loading />;
 
-  // Lọc chiến dịch theo danh mục và từ khóa tìm kiếm
-  const filteredCampaigns = data.filter((campaign) => {
+  // Filter and search campaigns
+  const filteredCampaigns = campaigns.filter((campaign) => {
     const matchesSearch = campaign.title
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -83,7 +70,7 @@ export default function ListCampaignPublisher() {
     return matchesSearch && matchesCategory;
   });
 
-  // Sắp xếp các chiến dịch
+  // Sort campaigns
   const sortedCampaigns = [...filteredCampaigns].sort((a, b) => {
     switch (sortBy) {
       case "newest":
@@ -96,9 +83,10 @@ export default function ListCampaignPublisher() {
         return b.rating - a.rating;
       case "popular":
       default:
-        return b.popularity || 0 - a.popularity || 0;
+        return (b.popularity || 0) - (a.popularity || 0);
     }
   });
+  console.log("campaigns", campaigns);
 
   return (
     <div className="min-h-screen pt-20 pb-12 px-4 md:px-8 lg:px-12 bg-gray-50">
@@ -106,10 +94,10 @@ export default function ListCampaignPublisher() {
         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
-              Khám Phá Chiến Dịch
+              Chiến Dịch Có Thể Đăng Ký
             </h1>
             <p className="text-gray-600">
-              Tìm và tham gia các chiến dịch affiliate phù hợp với bạn
+              Danh sách chiến dịch đã được phê duyệt và bạn chưa đăng ký
             </p>
           </div>
 
@@ -136,6 +124,7 @@ export default function ListCampaignPublisher() {
         {/* Thanh tìm kiếm và bộ lọc */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
             <div className="relative flex-1">
               <Search className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -148,38 +137,6 @@ export default function ListCampaignPublisher() {
             </div>
 
             <div className="flex gap-3">
-              {/* Bộ lọc danh mục */}
-              <div className="relative">
-                <button
-                  onClick={() => setFilterMenuOpen(!filterMenuOpen)}
-                  className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50"
-                >
-                  <Filter className="h-4 w-4 text-gray-500" />
-                  <span>
-                    {categories.find((c) => c.id === categoryFilter)?.name ||
-                      "Danh mục"}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
-                </button>
-
-                {filterMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg z-10 py-1">
-                    {categories.map((category) => (
-                      <button
-                        key={category.id}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                        onClick={() => {
-                          setCategoryFilter(category.id);
-                          setFilterMenuOpen(false);
-                        }}
-                      >
-                        {category.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               {/* Bộ sắp xếp */}
               <div className="relative">
                 <button
@@ -234,7 +191,7 @@ export default function ListCampaignPublisher() {
 
         {/* Kết quả tìm kiếm */}
         <p className="text-gray-600 mb-6">
-          Hiển thị {sortedCampaigns.length} chiến dịch{" "}
+          Hiển thị {sortedCampaigns.length} chiến dịch có thể đăng ký
           {categoryFilter !== "all" && (
             <span>
               trong danh mục &quot;
@@ -275,12 +232,17 @@ export default function ListCampaignPublisher() {
                 <div className="relative">
                   <img
                     src={
-                      campaign.image ||
+                      campaign.imageUrl ||
                       "https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
                     }
                     alt={campaign.title}
                     className="w-full h-48 object-cover"
                   />
+                  {campaign.status === "APPROVED" && (
+                    <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      Uy tín
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-5">
@@ -293,9 +255,9 @@ export default function ListCampaignPublisher() {
                     </div>
                     <span className="text-gray-300">|</span>
                     <div className="flex items-center gap-1 text-gray-500">
-                      <User className="h-4 w-4" />
+                      <DollarSign className="h-4 w-4" />
                       <span className="text-sm">
-                        {campaign.publishers || 100} nhà xuất bản
+                        {campaign.budget.toLocaleString()}đ
                       </span>
                     </div>
                   </div>
@@ -308,7 +270,7 @@ export default function ListCampaignPublisher() {
                     <div className="flex items-center gap-1">
                       <Tag className="h-4 w-4 text-gray-400" />
                       <span className="text-sm text-gray-600">
-                        {campaign.category || "Thời trang"}
+                        {campaign.targetAudience}
                       </span>
                     </div>
                     <div className="bg-orange-600 text-white px-3 py-1 rounded-full text-sm font-bold">
@@ -329,21 +291,28 @@ export default function ListCampaignPublisher() {
                       </span>
                     </div>
                     <div className="text-sm text-gray-500">
-                      Tỷ lệ chuyển đổi:{" "}
+                      Hoa hồng:{" "}
                       <span className="text-green-600 font-medium">
-                        {campaign.conversionRate || "3.2"}%
+                        {campaign.commissionValue.toLocaleString()}đ
                       </span>
+                      /Click
                     </div>
                   </div>
 
                   <div className="flex gap-2">
-                    <Link to={`${campaign.id}`} className="flex-1">
+                    <Link
+                      to={`/publisher/campaigns/${campaign.id}`}
+                      className="flex-1"
+                    >
                       <button className="w-full py-2 border border-orange-600 text-orange-600 rounded-lg hover:bg-orange-50 transition-colors flex items-center justify-center gap-1">
                         <Eye className="h-4 w-4" />
                         <span>Chi tiết</span>
                       </button>
                     </Link>
-                    <Link to={`/campaign/${campaign.id}`} className="flex-1">
+                    <Link
+                      to={`/publisher/campaigns/${campaign.id}`}
+                      className="flex-1"
+                    >
                       <button className="w-full py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center gap-1">
                         <HandCoins className="h-4 w-4" />
                         <span>Tham gia</span>
@@ -365,12 +334,6 @@ export default function ListCampaignPublisher() {
               </button>
               <button className="w-10 h-10 rounded-lg border flex items-center justify-center bg-orange-600 text-white">
                 1
-              </button>
-              <button className="w-10 h-10 rounded-lg border flex items-center justify-center text-gray-700 hover:bg-gray-50">
-                2
-              </button>
-              <button className="w-10 h-10 rounded-lg border flex items-center justify-center text-gray-700 hover:bg-gray-50">
-                3
               </button>
               <button className="w-10 h-10 rounded-lg border flex items-center justify-center text-gray-400 hover:bg-gray-50">
                 &gt;

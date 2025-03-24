@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router";
 import useAuthStore from "../../store/useAuthStore";
+import axiosInstance from "../../lib/axiosInstance";
 import {
   BarChart3,
   TrendingUp,
@@ -25,6 +26,77 @@ import {
 export default function AdminDashboard() {
   const { user } = useAuthStore();
   const [timeRange] = useState("7 ngày qua");
+  const [totalUsers, setTotalUsers] = useState({});
+  const [totalCampaigns, setTotalCampaigns] = useState({});
+  const [campaignData, setCampaignsData] = useState([]);
+  const [newUsers, setNewUsers] = useState([]);
+  const [usersData, setUsersData] = useState([]);
+  //fetchTotalUsers
+  useEffect(() => {
+    const fetchTotalUsers = async () => {
+      try {
+        const response = await axiosInstance.get(`/accounts/stats`);
+        setTotalUsers(response.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+    fetchTotalUsers();
+  }, []);
+
+  //fetchTotalCampaigns
+  useEffect(() => {
+    const fetchTotalCampaigns = async () => {
+      try {
+        const response = await axiosInstance.get(
+          `/api/advertiser/campaigns/stats`
+        );
+        setTotalCampaigns(response.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+    fetchTotalCampaigns();
+  }, []);
+
+  //fetchCampaignsData
+  useEffect(() => {
+    const fetchCampaignsData = async () => {
+      try {
+        const response = await axiosInstance.get(`/api/advertiser/campaigns`);
+        setCampaignsData(response.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+    fetchCampaignsData();
+  }, []);
+
+  //fetchUsersData
+  useEffect(() => {
+    const fetchUsersData = async () => {
+      try {
+        const response = await axiosInstance.get(`/accounts`);
+        setUsersData(response.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+    fetchUsersData();
+  }, []);
+
+  //fetchNewUsers
+  useEffect(() => {
+    const fetchNewUsers = async () => {
+      try {
+        const response = await axiosInstance.get(`/accounts/recentAccounts`);
+        setNewUsers(response.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+    fetchNewUsers();
+  }, []);
 
   if (!user) {
     return <Navigate to="/login" />;
@@ -37,82 +109,10 @@ export default function AdminDashboard() {
   // Thống kê tổng quan
   const statistics = {
     totalRevenue: 145780.25,
-    totalPublishers: 5284,
-    totalAdvertisers: 843,
-    totalCampaigns: 1864,
-    pendingCampaigns: 28,
     pendingUsers: 17,
     pendingPayouts: 65,
   };
 
-  // Dữ liệu người dùng mới
-  const newUsers = [
-    {
-      id: 1,
-      name: "Nguyễn Văn A",
-      email: "nguyenvana@example.com",
-      role: "PUBLISHER",
-      status: "pending",
-      joinedAt: "2025-03-20",
-    },
-    {
-      id: 2,
-      name: "Trần Văn B",
-      email: "tranvanb@example.com",
-      role: "ADVERTISER",
-      status: "pending",
-      joinedAt: "2025-03-19",
-    },
-    {
-      id: 3,
-      name: "Lê Thị C",
-      email: "lethic@example.com",
-      role: "PUBLISHER",
-      status: "pending",
-      joinedAt: "2025-03-18",
-    },
-    {
-      id: 4,
-      name: "Phạm Văn D",
-      email: "phamvand@example.com",
-      role: "ADVERTISER",
-      status: "pending",
-      joinedAt: "2025-03-17",
-    },
-  ];
-
-  // Dữ liệu chiến dịch đang chờ duyệt
-  const pendingCampaigns = [
-    {
-      id: 1,
-      name: "Thời trang nam Xuân Hè 2025",
-      advertiser: "Fashion Store",
-      category: "Thời trang",
-      budget: 4500,
-      status: "pending",
-      submittedAt: "2025-03-20",
-    },
-    {
-      id: 2,
-      name: "Khóa học Excel nâng cao",
-      advertiser: "SkillUp Academy",
-      category: "Giáo dục",
-      budget: 2800,
-      status: "pending",
-      submittedAt: "2025-03-19",
-    },
-    {
-      id: 3,
-      name: "Smartphone Galaxy S28",
-      advertiser: "TechWorld",
-      category: "Công nghệ",
-      budget: 7800,
-      status: "pending",
-      submittedAt: "2025-03-18",
-    },
-  ];
-
-  // Dữ liệu cảnh báo hệ thống
   const systemAlerts = [
     {
       id: 1,
@@ -138,6 +138,9 @@ export default function AdminDashboard() {
       time: "1 ngày trước",
     },
   ];
+  console.log("totalCampaigns", totalCampaigns);
+  console.log("campaignData", campaignData);
+  console.log("usersData", usersData);
 
   return (
     <div className="min-h-screen pt-20 pb-16 bg-gray-50">
@@ -151,11 +154,7 @@ export default function AdminDashboard() {
               </h1>
               <div className="flex items-center gap-1 text-xs text-white bg-orange-500 px-2 py-1 rounded-full">
                 <Bell className="h-3 w-3" />
-                <span>
-                  {statistics.pendingUsers +
-                    statistics.pendingCampaigns +
-                    statistics.pendingPayouts}
-                </span>
+                {totalCampaigns.PENDING}
               </div>
             </div>
             <p className="text-gray-500">
@@ -181,6 +180,7 @@ export default function AdminDashboard() {
 
         {/* Thống kê tổng quan */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Doanh thu */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-
+          {/* User */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -213,21 +213,19 @@ export default function AdminDashboard() {
                   Tổng Người Dùng
                 </p>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {(
-                    statistics.totalPublishers + statistics.totalAdvertisers
-                  ).toLocaleString()}
+                  {totalUsers.totalAccounts - 1}
                 </h3>
                 <div className="flex items-center gap-4 mt-2">
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                     <span className="text-xs text-gray-500">
-                      Nhà xuất bản: {statistics.totalPublishers}
+                      Advertiser: {totalUsers.totalPublishers}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <span className="text-xs text-gray-500">
-                      Nhà quảng cáo: {statistics.totalAdvertisers}
+                      Publisher: {totalUsers.totalAdvertisers}
                     </span>
                   </div>
                 </div>
@@ -237,7 +235,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-
+          {/* Campaigns */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -245,20 +243,19 @@ export default function AdminDashboard() {
                   Tổng Chiến Dịch
                 </p>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {statistics.totalCampaigns.toLocaleString()}
+                  {totalCampaigns.Total}
                 </h3>
                 <div className="flex items-center gap-4 mt-2">
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="text-xs text-gray-500">
-                      Hoạt động:{" "}
-                      {statistics.totalCampaigns - statistics.pendingCampaigns}
+                      Hoạt động: {totalCampaigns.APPROVED}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                     <span className="text-xs text-gray-500">
-                      Chờ duyệt: {statistics.pendingCampaigns}
+                      Chờ duyệt: {totalCampaigns.PENDING}
                     </span>
                   </div>
                 </div>
@@ -268,7 +265,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-
+          {/* Cần xử lý */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex justify-between items-start">
               <div>
@@ -276,27 +273,17 @@ export default function AdminDashboard() {
                   Cần Xử Lý
                 </p>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {statistics.pendingUsers +
-                    statistics.pendingCampaigns +
-                    statistics.pendingPayouts}
+                  {totalCampaigns.PENDING}
                 </h3>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    <span className="text-xs text-gray-500">
-                      Người dùng: {statistics.pendingUsers}
-                    </span>
+                    <span className="text-xs text-gray-500">Người dùng: 0</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                     <span className="text-xs text-gray-500">
-                      Chiến dịch: {statistics.pendingCampaigns}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    <span className="text-xs text-gray-500">
-                      Thanh toán: {statistics.pendingPayouts}
+                      Chiến dịch: {totalCampaigns.PENDING}
                     </span>
                   </div>
                 </div>
@@ -352,7 +339,6 @@ export default function AdminDashboard() {
               ))}
             </div>
           </div>
-
           {/* Cảnh báo hệ thống */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex justify-between items-center mb-6">
@@ -415,7 +401,7 @@ export default function AdminDashboard() {
 
         {/* Phê duyệt người dùng và chiến dịch */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Người dùng chờ phê duyệt */}
+          {/* Người dùng mới */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-100">
               <div className="flex justify-between items-center">
@@ -460,7 +446,7 @@ export default function AdminDashboard() {
                           </div>
                           <div>
                             <div className="text-sm font-medium text-gray-900">
-                              {user.name}
+                              {user.username}
                             </div>
                             <div className="text-xs text-gray-500">
                               {user.email}
@@ -483,15 +469,21 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="text-sm text-gray-700">
-                          {user.joinedAt}
+                          {new Date(user.createdAt).toLocaleDateString("vi-VN")}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex justify-center space-x-2">
-                          <button className="p-1 rounded-full text-white bg-green-500 hover:bg-green-600">
-                            <CheckCircle className="h-4 w-4" />
+                          <button
+                            className="p-1 rounded-full text-white bg-orange-500 hover:bg-orange-600"
+                            title="Tạm dừng tài khoản"
+                          >
+                            <ShieldAlert className="h-4 w-4" />
                           </button>
-                          <button className="p-1 rounded-full text-white bg-red-500 hover:bg-red-600">
+                          <button
+                            className="p-1 rounded-full text-white bg-red-500 hover:bg-red-600"
+                            title="Chặn tài khoản"
+                          >
                             <XCircle className="h-4 w-4" />
                           </button>
                         </div>
@@ -508,7 +500,13 @@ export default function AdminDashboard() {
             <div className="p-6 border-b border-gray-100">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-800">
-                  Chiến Dịch Chờ Duyệt
+                  Chiến Dịch Chờ Duyệt (
+                  {
+                    campaignData.filter(
+                      (campaign) => campaign.status === "PENDING"
+                    ).length
+                  }
+                  )
                 </h3>
                 <Link
                   to="/admin/campaigns"
@@ -539,47 +537,47 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {pendingCampaigns.map((campaign) => (
-                    <tr key={campaign.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                            <Megaphone className="h-4 w-4 text-gray-500" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {campaign.name}
+                  {campaignData
+                    .filter((campaign) => campaign.status === "PENDING")
+                    .map((campaign) => (
+                      <tr key={campaign.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                              <Megaphone className="h-4 w-4 text-gray-500" />
                             </div>
-                            <div className="text-xs text-gray-500">
-                              <span>{campaign.advertiser}</span>
-                              <span className="mx-2">•</span>
-                              <span>{campaign.category}</span>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {campaign.title}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                <span>{campaign.advertiser}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm font-medium text-gray-900">
-                          ${campaign.budget.toLocaleString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="text-sm text-gray-700">
-                          {campaign.submittedAt}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="flex justify-center space-x-2">
-                          <button className="p-1 rounded-full text-white bg-green-500 hover:bg-green-600">
-                            <CheckCircle className="h-4 w-4" />
-                          </button>
-                          <button className="p-1 rounded-full text-white bg-red-500 hover:bg-red-600">
-                            <XCircle className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="text-sm font-medium text-gray-900">
+                            ${campaign.budget.toLocaleString()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="text-sm text-gray-700">
+                            {campaign.startDate}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="flex justify-center space-x-2">
+                            <button className="p-1 rounded-full text-white bg-green-500 hover:bg-green-600">
+                              <CheckCircle className="h-4 w-4" />
+                            </button>
+                            <button className="p-1 rounded-full text-white bg-red-500 hover:bg-red-600">
+                              <XCircle className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>

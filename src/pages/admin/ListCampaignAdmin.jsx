@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../lib/axiosInstance";
 import Loading from "../../components/Loading";
+import AdminDetailCampaign from "./AdminDetailCampaign";
 import {
   Search,
   Filter,
@@ -16,22 +17,20 @@ import {
   Clock,
   Download,
   MoreHorizontal,
-  PlusCircle,
-  Star,
 } from "lucide-react";
 
 const ListCampaignAdmin = () => {
   const [campaigns, setCampaigns] = useState([]);
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [selectedCampaignId, setSelectedCampaignId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({
     key: "id",
     direction: "ascending",
   });
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -48,22 +47,14 @@ const ListCampaignAdmin = () => {
     fetchCampaigns();
   }, []);
 
-  // Fetch campaign detail
-  const fetchCampaignDetail = async (id) => {
-    setDetailLoading(true);
-    try {
-      const res = await axiosInstance.get(`/api/advertiser/campaigns/${id}`);
-      setSelectedCampaign(res.data);
-    } catch (err) {
-      console.error("Error fetching campaign detail:", err);
-    } finally {
-      setDetailLoading(false);
-    }
+  // Mở modal chi tiết
+  const openCampaignDetail = (id) => {
+    setSelectedCampaignId(id);
   };
 
-  // Close modal
-  const closeModal = () => {
-    setSelectedCampaign(null);
+  // Đóng modal
+  const closeCampaignDetail = () => {
+    setSelectedCampaignId(null);
   };
 
   // Lọc danh sách theo trạng thái và tìm kiếm
@@ -98,31 +89,37 @@ const ListCampaignAdmin = () => {
     setSortConfig({ key, direction });
   };
 
-  // Duyệt hoặc từ chối chiến dịch
-  const handleApprove = async (id) => {
+  // Cập nhật trạng thái chiến dịch
+  const updateCampaignStatus = async (id, status) => {
+    if (actionLoading) return;
+
+    setActionLoading(true);
     try {
-      await axiosInstance.patch(`/api/advertiser/campaigns/${id}/approve`);
-      setCampaigns(
-        campaigns.map((c) => (c.id === id ? { ...c, status: "APPROVED" } : c))
+      await axiosInstance.put(
+        `/api/advertiser/campaigns/updateStatus/${id}?status=${status}`
       );
+
+      // Cập nhật state
+      setCampaigns(campaigns.map((c) => (c.id === id ? { ...c, status } : c)));
     } catch (err) {
-      console.error("Error approving campaign:", err);
+      console.error(`Error updating campaign status to ${status}:`, err);
+    } finally {
+      setActionLoading(false);
     }
   };
 
+  // Duyệt chiến dịch
+  const handleApprove = async (id) => {
+    await updateCampaignStatus(id, "APPROVED");
+  };
+
+  // Từ chối chiến dịch
   const handleReject = async (id) => {
-    try {
-      await axiosInstance.patch(`/api/advertiser/campaigns/${id}/reject`);
-      setCampaigns(
-        campaigns.map((c) => (c.id === id ? { ...c, status: "REJECTED" } : c))
-      );
-    } catch (err) {
-      console.error("Error rejecting campaign:", err);
-    }
+    await updateCampaignStatus(id, "REJECTED");
   };
 
   if (loading) return <Loading />;
-  if (error) return <p className="text-center text-red-500">Error: {error}</p>;
+  if (error) return <p className="text-center text-red-500">Lỗi: {error}</p>;
 
   return (
     <div className="min-h-screen pt-20 pb-16 bg-gray-50">
@@ -139,10 +136,10 @@ const ListCampaignAdmin = () => {
           </div>
 
           <div className="flex gap-3 mt-4 md:mt-0">
-            <button className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all flex items-center">
+            {/* <button className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-4 py-2 text-sm font-medium transition-all flex items-center">
               <PlusCircle className="h-4 w-4 mr-2" />
               Tạo Chiến Dịch
-            </button>
+            </button> */}
             <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium transition-all flex items-center">
               <Download className="h-4 w-4 mr-2" />
               Xuất Dữ Liệu
@@ -352,8 +349,9 @@ const ListCampaignAdmin = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex justify-center space-x-2">
                         <button
-                          onClick={() => fetchCampaignDetail(campaign.id)}
+                          onClick={() => openCampaignDetail(campaign.id)}
                           className="p-1 rounded-full text-blue-600 hover:bg-blue-100"
+                          disabled={actionLoading}
                         >
                           <Eye className="h-5 w-5" />
                         </button>
@@ -363,12 +361,14 @@ const ListCampaignAdmin = () => {
                             <button
                               onClick={() => handleApprove(campaign.id)}
                               className="p-1 rounded-full text-green-600 hover:bg-green-100"
+                              disabled={actionLoading}
                             >
                               <CheckCircle className="h-5 w-5" />
                             </button>
                             <button
                               onClick={() => handleReject(campaign.id)}
                               className="p-1 rounded-full text-red-600 hover:bg-red-100"
+                              disabled={actionLoading}
                             >
                               <XCircle className="h-5 w-5" />
                             </button>
@@ -413,12 +413,12 @@ const ListCampaignAdmin = () => {
             <button className="px-3 py-1 border border-transparent rounded-md text-sm text-white bg-orange-500 hover:bg-orange-600">
               1
             </button>
-            <button className="px-3 py-1 border border-gray-200 rounded-md text-sm text-gray-600 bg-white hover:bg-gray-50">
+            {/* <button className="px-3 py-1 border border-gray-200 rounded-md text-sm text-gray-600 bg-white hover:bg-gray-50">
               2
             </button>
             <button className="px-3 py-1 border border-gray-200 rounded-md text-sm text-gray-600 bg-white hover:bg-gray-50">
               3
-            </button>
+            </button> */}
             <button className="px-3 py-1 border border-gray-200 rounded-md text-sm text-gray-600 bg-white hover:bg-gray-50">
               Sau
             </button>
@@ -426,222 +426,14 @@ const ListCampaignAdmin = () => {
         </div>
       </div>
 
-      {/* Modal Chi tiết */}
-      {selectedCampaign && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50">
-          <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800">
-                  Chi Tiết Chiến Dịch
-                </h2>
-                <button
-                  onClick={closeModal}
-                  className="p-1 rounded-full hover:bg-gray-100 text-gray-500"
-                >
-                  <XCircle className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              {detailLoading ? (
-                <div className="flex justify-center p-6">
-                  <Loading />
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Hình ảnh chiến dịch */}
-                  {selectedCampaign.imageUrl && (
-                    <div className="w-full h-48 bg-gray-100 rounded-xl overflow-hidden">
-                      <img
-                        src={selectedCampaign.imageUrl}
-                        alt={selectedCampaign.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-
-                  {/* Thông tin chiến dịch */}
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800 mb-2">
-                      {selectedCampaign.title}
-                    </h3>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        ${
-                          selectedCampaign.status === "APPROVED"
-                            ? "bg-green-100 text-green-800"
-                            : selectedCampaign.status === "PENDING"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : selectedCampaign.status === "REJECTED"
-                            ? "bg-red-100 text-red-800"
-                            : selectedCampaign.status === "ACTIVE"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {selectedCampaign.status === "APPROVED"
-                          ? "Đã duyệt"
-                          : selectedCampaign.status === "PENDING"
-                          ? "Chờ duyệt"
-                          : selectedCampaign.status === "REJECTED"
-                          ? "Đã từ chối"
-                          : selectedCampaign.status === "ACTIVE"
-                          ? "Đang hoạt động"
-                          : selectedCampaign.status === "ENDED"
-                          ? "Đã kết thúc"
-                          : selectedCampaign.status}
-                      </span>
-                      {selectedCampaign.category && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          {selectedCampaign.category}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="text-sm text-gray-600 mb-4">
-                      {selectedCampaign.description}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <h4 className="text-sm font-medium text-gray-500 mb-2">
-                          Thông tin chiến dịch
-                        </h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">
-                              Đối tượng:
-                            </span>
-                            <span className="text-sm font-medium">
-                              {selectedCampaign.targetAudience ||
-                                "Chưa xác định"}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">
-                              Ngân sách:
-                            </span>
-                            <span className="text-sm font-medium">
-                              ${selectedCampaign.budget?.toLocaleString() || 0}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">
-                              Tỷ lệ hoa hồng:
-                            </span>
-                            <span className="text-sm font-medium">
-                              {selectedCampaign.commissionRate || "0%"}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">
-                              Giá trị hoa hồng:
-                            </span>
-                            <span className="text-sm font-medium">
-                              $
-                              {selectedCampaign.commissionValue?.toLocaleString() ||
-                                0}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">
-                              Đánh giá:
-                            </span>
-                            <span className="text-sm font-medium flex items-center">
-                              <Star className="h-3 w-3 text-yellow-400 mr-1 inline" />
-                              {selectedCampaign.rating || "Chưa có đánh giá"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <h4 className="text-sm font-medium text-gray-500 mb-2">
-                          Thời gian
-                        </h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">
-                              Ngày bắt đầu:
-                            </span>
-                            <span className="text-sm font-medium">
-                              {selectedCampaign.startDate || "Chưa xác định"}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">
-                              Ngày kết thúc:
-                            </span>
-                            <span className="text-sm font-medium">
-                              {selectedCampaign.endDate || "Chưa xác định"}
-                            </span>
-                          </div>
-                        </div>
-
-                        <h4 className="text-sm font-medium text-gray-500 mt-4 mb-2">
-                          Liên kết
-                        </h4>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">
-                              Link quảng cáo:
-                            </span>
-                            <a
-                              href={selectedCampaign.adsLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm font-medium text-blue-500 hover:underline"
-                            >
-                              Mở liên kết
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="p-6 border-t border-gray-100">
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={closeModal}
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50"
-                >
-                  Đóng
-                </button>
-
-                {selectedCampaign.status === "PENDING" && (
-                  <>
-                    <button
-                      onClick={() => {
-                        handleReject(selectedCampaign.id);
-                        closeModal();
-                      }}
-                      className="px-4 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
-                    >
-                      Từ chối
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleApprove(selectedCampaign.id);
-                        closeModal();
-                      }}
-                      className="px-4 py-2 bg-green-500 rounded-lg text-sm font-medium text-white hover:bg-green-600"
-                    >
-                      Phê duyệt
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Sử dụng component AdminDetailCampaign thay vì Modal trực tiếp */}
+      <AdminDetailCampaign
+        campaignId={selectedCampaignId}
+        isOpen={!!selectedCampaignId}
+        onClose={closeCampaignDetail}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </div>
   );
 };
